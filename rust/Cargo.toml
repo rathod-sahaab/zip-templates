@@ -1,0 +1,22 @@
+[package]
+name = "zip_templates"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde_json = "1.0"
+regex = "1.10"
+
+[dev-dependencies]
+criterion = { version = "0.7.0", features = ["html_reports"] }
+tera = "1.20.1"
+
+[[bench]]
+name = "zip_templates_bench"
+harness = false
+
+[profile.bench]
+opt-level = 3     # Already default
+debug = true      # Enable debug symbols for profiling
+lto = true        # Link-time optimization
+codegen-units = 1 # Single codegen unit for max performance

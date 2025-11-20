@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="96" viewBox="0 0 720 96" role="img" aria-label="Complexity formulas: Time_parse = O(T); Time_render = O(p + O); Space_aux = O(s + p) plus final O(O)">
+  <rect width="100%" height="100%" fill="transparent"/>
+  <g font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#111">
+    <text x="12" y="28">Time_parse = O(T)</text>
+    <text x="12" y="56">Time_render = O(p + O)</text>
+    <text x="12" y="84">Space_aux = O(s + p)  (plus final output O(O))</text>
+  </g>
+</svg>
