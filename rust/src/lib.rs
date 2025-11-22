@@ -3,19 +3,20 @@
 //! - parse: splits template into `statics` and `placeholders` vectors
 //! - render: resolves placeholder dot-paths against a `serde_json::Value` and zips/stitches the final output
 
+use regex::Regex;
 use serde_json::Value;
 
 #[derive(Debug, Clone)]
 pub struct ZipTemplate {
     pub statics: Vec<String>,
     pub placeholders: Vec<String>,
+    pre_emptive_size: usize,
 }
 
 impl ZipTemplate {
     /// Parse a template into `statics` and `placeholders`.
     /// Placeholder syntax: `{{path.to.value}}` (trimmed).
-    pub fn parse(template: &str) -> Self {
-        use regex::Regex;
+    pub fn from(template: &str) -> Self {
         let re = Regex::new(r"\{\{(.*?)\}\}").unwrap();
         let mut statics = Vec::new();
         let mut placeholders = Vec::new();
@@ -35,21 +36,24 @@ impl ZipTemplate {
         ZipTemplate {
             statics,
             placeholders,
+            pre_emptive_size: (template.len() as f32 * 1.5) as usize,
         }
     }
 
     /// Render this parsed template against a flat map of placeholder values.
-    /// If `strict` is true, missing keys will return `Err(String)`.
     pub fn render(&self, flat: &std::collections::HashMap<String, String>) -> String {
-        let mut out = String::new();
-        let statics = &self.statics;
-        let placeholders = &self.placeholders;
-        for (i, s) in statics.iter().enumerate() {
-            out.push_str(s);
-            if let Some(v) = flat.get(&placeholders[i]) {
-                out.push_str(v);
-            }
-        }
+        let mut out = String::with_capacity(self.pre_emptive_size);
+
+        self.statics
+            .iter()
+            .zip(&self.placeholders)
+            .for_each(|(s, placeholder)| {
+                out.push_str(s);
+                if let Some(data) = flat.get(placeholder) {
+                    out.push_str(data);
+                }
+            });
+
         out
     }
 }
@@ -103,7 +107,7 @@ mod tests {
     #[test]
     fn basic_parse_render_flat() {
         let tpl = "Hi, {{user.name.first}} — balance: {{account.balance}} USD";
-        let parsed = ZipTemplate::parse(tpl);
+        let parsed = ZipTemplate::from(tpl);
         let mut flat = HashMap::new();
         flat.insert("user.name.first".to_string(), "Sam".to_string());
         flat.insert("account.balance".to_string(), "12.34".to_string());
@@ -114,7 +118,7 @@ mod tests {
     #[test]
     fn missing_key_non_strict() {
         let tpl = "Hello, {{name}}!";
-        let parsed = ZipTemplate::parse(tpl);
+        let parsed = ZipTemplate::from(tpl);
         let flat = HashMap::new();
         let out = parsed.render(&flat);
         assert_eq!(out, "Hello, !");
@@ -123,7 +127,7 @@ mod tests {
     #[test]
     fn multiple_placeholders() {
         let tpl = "{{a}},{{b}},{{c}}";
-        let parsed = ZipTemplate::parse(tpl);
+        let parsed = ZipTemplate::from(tpl);
         let mut flat = HashMap::new();
         flat.insert("a".to_string(), "1".to_string());
         flat.insert("b".to_string(), "2".to_string());
@@ -135,7 +139,7 @@ mod tests {
     #[test]
     fn empty_template() {
         let tpl = "";
-        let parsed = ZipTemplate::parse(tpl);
+        let parsed = ZipTemplate::from(tpl);
         let flat = HashMap::new();
         let out = parsed.render(&flat);
         assert_eq!(out, "");
@@ -144,7 +148,7 @@ mod tests {
     #[test]
     fn only_static() {
         let tpl = "static text only";
-        let parsed = ZipTemplate::parse(tpl);
+        let parsed = ZipTemplate::from(tpl);
         let flat = HashMap::new();
         let out = parsed.render(&flat);
         assert_eq!(out, "static text only");
