@@ -4,6 +4,7 @@
 //! - render: resolves placeholder dot-paths against a `serde_json::Value` and zips/stitches the final output
 
 use regex::Regex;
+use rustc_hash::FxHashMap;
 use serde_json::Value;
 
 #[derive(Debug, Clone)]
@@ -41,7 +42,7 @@ impl ZipTemplate {
     }
 
     /// Render this parsed template against a flat map of placeholder values.
-    pub fn render(&self, flat: &std::collections::HashMap<String, String>) -> String {
+    pub fn render(&self, flat: &FxHashMap<String, String>) -> String {
         let mut out = String::with_capacity(self.pre_emptive_size);
         let dynamics = self
             .placeholders
@@ -57,11 +58,9 @@ impl ZipTemplate {
     }
 }
 
-use std::collections::HashMap;
-
 /// Flattens a nested JSON object into a flat map with dot-separated keys.
-pub fn flatten_json(value: &Value) -> HashMap<String, String> {
-    fn helper(value: &Value, prefix: String, out: &mut HashMap<String, String>) {
+pub fn flatten_json(value: &Value) -> FxHashMap<String, String> {
+    fn helper(value: &Value, prefix: String, out: &mut FxHashMap<String, String>) {
         match value {
             Value::Object(map) => {
                 for (k, v) in map {
@@ -91,7 +90,7 @@ pub fn flatten_json(value: &Value) -> HashMap<String, String> {
             }
         }
     }
-    let mut out = HashMap::new();
+    let mut out = FxHashMap::default();
     helper(value, String::new(), &mut out);
     out
 }
@@ -101,13 +100,12 @@ pub fn flatten_json(value: &Value) -> HashMap<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
 
     #[test]
     fn basic_parse_render_flat() {
         let tpl = "Hi, {{user.name.first}} — balance: {{account.balance}} USD";
         let parsed = ZipTemplate::from(tpl);
-        let mut flat = HashMap::new();
+        let mut flat = FxHashMap::default();
         flat.insert("user.name.first".to_string(), "Sam".to_string());
         flat.insert("account.balance".to_string(), "12.34".to_string());
         let out = parsed.render(&flat);
@@ -118,7 +116,7 @@ mod tests {
     fn missing_key_non_strict() {
         let tpl = "Hello, {{name}}!";
         let parsed = ZipTemplate::from(tpl);
-        let flat = HashMap::new();
+        let flat = FxHashMap::default();
         let out = parsed.render(&flat);
         assert_eq!(out, "Hello, !");
     }
@@ -127,7 +125,7 @@ mod tests {
     fn multiple_placeholders() {
         let tpl = "{{a}},{{b}},{{c}}";
         let parsed = ZipTemplate::from(tpl);
-        let mut flat = HashMap::new();
+        let mut flat = FxHashMap::default();
         flat.insert("a".to_string(), "1".to_string());
         flat.insert("b".to_string(), "2".to_string());
         flat.insert("c".to_string(), "3".to_string());
@@ -139,7 +137,7 @@ mod tests {
     fn empty_template() {
         let tpl = "";
         let parsed = ZipTemplate::from(tpl);
-        let flat = HashMap::new();
+        let flat = FxHashMap::default();
         let out = parsed.render(&flat);
         assert_eq!(out, "");
     }
@@ -148,7 +146,7 @@ mod tests {
     fn only_static() {
         let tpl = "static text only";
         let parsed = ZipTemplate::from(tpl);
-        let flat = HashMap::new();
+        let flat = FxHashMap::default();
         let out = parsed.render(&flat);
         assert_eq!(out, "static text only");
     }
