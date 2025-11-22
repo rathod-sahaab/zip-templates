@@ -41,7 +41,11 @@ impl ZipTemplate {
         }
     }
 
-    /// Render this parsed template against a flat map of placeholder values.
+    pub fn static_parts_count(&self) -> usize {
+        self.statics.len()
+    }
+
+    /// Render parsed template against a flat map of placeholder values.
     pub fn render(&self, flat: &FxHashMap<String, String>) -> String {
         let mut out = String::with_capacity(self.pre_emptive_size);
         let dynamics = self
@@ -53,6 +57,23 @@ impl ZipTemplate {
             out.push_str(s);
             out.push_str(dynamic);
         });
+
+        out
+    }
+
+    pub fn render_from_vec(&self, dynamics: &[String]) -> String {
+        let mut out = String::with_capacity(self.pre_emptive_size);
+
+        let mut dyn_it = dynamics.iter();
+
+        for s in self.statics.iter() {
+            out.push_str(s);
+
+            match dyn_it.next() {
+                Some(d) => out.push_str(d),
+                None => out.push_str(""),
+            }
+        }
 
         out
     }
@@ -148,6 +169,50 @@ mod tests {
         let parsed = ZipTemplate::from(tpl);
         let flat = FxHashMap::default();
         let out = parsed.render(&flat);
+        assert_eq!(out, "static text only");
+    }
+
+    #[test]
+    fn basic_parse_render_flat_from_vec() {
+        let tpl = "Hi, {{user.name.first}} — balance: {{account.balance}} USD";
+        let parsed = ZipTemplate::from(tpl);
+        let out = parsed.render_from_vec(&["Sam".to_string(), "12.34".to_string()]);
+        assert_eq!(out, "Hi, Sam — balance: 12.34 USD");
+    }
+
+    #[test]
+    fn missing_key_non_strict_from_vec() {
+        let tpl = "Hello, {{name}}!";
+        let parsed = ZipTemplate::from(tpl);
+        let out = parsed.render_from_vec(&Vec::new());
+        assert_eq!(out, "Hello, !");
+    }
+
+    #[test]
+    fn multiple_placeholders_from_vec() {
+        let tpl = "{{a}},{{b}},{{c}}";
+        let parsed = ZipTemplate::from(tpl);
+        let mut flat = FxHashMap::default();
+        flat.insert("a".to_string(), "1".to_string());
+        flat.insert("b".to_string(), "2".to_string());
+        flat.insert("c".to_string(), "3".to_string());
+        let out = parsed.render_from_vec(&["1".to_string(), "2".to_string(), "3".to_string()]);
+        assert_eq!(out, "1,2,3");
+    }
+
+    #[test]
+    fn empty_template_from_vec() {
+        let tpl = "";
+        let parsed = ZipTemplate::from(tpl);
+        let out = parsed.render_from_vec(&Vec::new());
+        assert_eq!(out, "");
+    }
+
+    #[test]
+    fn only_static_from_vec() {
+        let tpl = "static text only";
+        let parsed = ZipTemplate::from(tpl);
+        let out = parsed.render_from_vec(&[]);
         assert_eq!(out, "static text only");
     }
 }

@@ -45,6 +45,19 @@ fn bench_zip_templates(c: &mut Criterion) {
     });
 }
 
+fn bench_zip_templates_from_vec(c: &mut Criterion) {
+    let (template, _) = prepare_data();
+    let parsed = ZipTemplate::from(&template);
+
+    let dynamics = vec!["Sam".to_string(), "12.34".to_string(), "5".to_string()];
+    c.bench_function("zip_templates::render_from_vec_smart", |b| {
+        b.iter(|| {
+            let out = parsed.render_from_vec(&dynamics);
+            black_box(out);
+        })
+    });
+}
+
 fn bench_tera(c: &mut Criterion) {
     let (template, data) = prepare_data();
 
@@ -116,6 +129,7 @@ criterion_group!(
     benches,
     bench_zip_templates,
     bench_zip_templates_flat,
+    bench_zip_templates_from_vec,
     bench_tera,
     bench_simple_replace,
     bench_simple_replace_flat,
