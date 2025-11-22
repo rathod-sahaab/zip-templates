@@ -43,16 +43,15 @@ impl ZipTemplate {
     /// Render this parsed template against a flat map of placeholder values.
     pub fn render(&self, flat: &std::collections::HashMap<String, String>) -> String {
         let mut out = String::with_capacity(self.pre_emptive_size);
-
-        self.statics
+        let dynamics = self
+            .placeholders
             .iter()
-            .zip(&self.placeholders)
-            .for_each(|(s, placeholder)| {
-                out.push_str(s);
-                if let Some(data) = flat.get(placeholder) {
-                    out.push_str(data);
-                }
-            });
+            .map(|placeholder| flat.get(placeholder).map_or("", |s| s.as_str()));
+
+        self.statics.iter().zip(dynamics).for_each(|(s, dynamic)| {
+            out.push_str(s);
+            out.push_str(dynamic);
+        });
 
         out
     }
