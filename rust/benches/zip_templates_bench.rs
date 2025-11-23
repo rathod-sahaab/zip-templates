@@ -1,4 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+use mystical_runic::{TemplateContext, TemplateEngine, TemplateValue};
 use serde_json::json;
 use std::hint::black_box;
 use tera::Context;
@@ -74,6 +75,32 @@ fn bench_tera(c: &mut Criterion) {
     });
 }
 
+fn bench_mystical_runic(c: &mut Criterion) {
+    let (template, data) = prepare_data();
+    let mut engine = TemplateEngine::new("template");
+    let mut context = TemplateContext::new();
+
+    context.set(
+        "user.name.first",
+        TemplateValue::String(data["user"]["name"]["first"].as_str().unwrap().to_string()),
+    );
+    context.set(
+        "account.balance",
+        TemplateValue::String(data["account"]["balance"].as_f64().unwrap().to_string()),
+    );
+    context.set(
+        "meta.count",
+        TemplateValue::String(data["meta"]["count"].as_i64().unwrap().to_string()),
+    );
+
+    c.bench_function("mystical_runic::render", |b| {
+        b.iter(|| {
+            let out = engine.render_string(&template, &context).unwrap();
+            black_box(out);
+        })
+    });
+}
+
 fn bench_simple_replace_flat(c: &mut Criterion) {
     let (template, data) = prepare_data();
 
@@ -131,6 +158,7 @@ criterion_group!(
     bench_zip_templates_flat,
     bench_zip_templates_from_vec,
     bench_tera,
+    bench_mystical_runic,
     bench_simple_replace,
     bench_simple_replace_flat,
 );
