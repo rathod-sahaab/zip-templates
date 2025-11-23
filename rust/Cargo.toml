@@ -1,6 +1,6 @@
 [package]
 name = "zip_templates"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 description = "Fastest, simplest template rendering engine in rust, implementing a novel algorithm."
 license = "MIT"
