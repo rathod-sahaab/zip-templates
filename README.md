@@ -103,14 +103,30 @@ console.log(out); // "Hi, Sam — balance: 12.34 USD"
 
 This section gives a compact, language-agnostic view of the costs involved when parsing and rendering with ZipTemplates. It focuses on asymptotic behavior, memory (allocations), and a small worked numeric example you can use to estimate cost for your templates.
 
-Notation used below:
+- $T$ — template length (characters)
+- $p$ — number of placeholders
+- $s$ — number of static segments ($s = p + 1$)
+- $S_{\mathrm{avg}}$ — average static segment length
+- $L_{\mathrm{avg}}$ — average length of resolved placeholder values
+- $O$ — total output length
 
-- T = length (characters) of the input template string when parsing
-- s = number of static segments (literal pieces). Note s = p + 1 where p is number of placeholders
-- p = number of placeholders
-- S_avg = average length (characters) of a static segment
-- L_avg = average length (characters) of a resolved placeholder value
-- O = total output length = s _ S_avg + p _ L_avg
+Display formulas (LaTeX):
+
+$$
+O = s \cdot S_{\mathrm{avg}} + p \cdot L_{\mathrm{avg}}
+$$
+
+$$
+\mathrm{Time_{parse}} = O(T)
+$$
+
+$$
+\mathrm{Time_{render}} = O(p + O)
+$$
+
+$$
+\mathrm{Space_{aux}} = O(s + p) \quad\text{(plus final output } O(O)\text{)}
+$$
 
 Parsing
 
@@ -154,43 +170,6 @@ Summary
 
 - Asymptotically, ZipTemplates is optimal for the interpolation-only use case: parse O(T), render O(p + O) time, and a small O(s+p) extra memory for arrays plus one O(O) allocation for the output string.
 
-### Formulas (LaTeX + portable images)
-
-Below are the key formulas from this section written in LaTeX (for sites that render math) and included as portable SVG images so the math appears correctly on GitHub and other viewers that don't process LaTeX.
-
-Inline notation used above:
-
-- $T$ — template length (characters)
-- $p$ — number of placeholders
-- $s$ — number of static segments ($s = p + 1$)
-- $S_{\mathrm{avg}}$ — average static segment length
-- $L_{\mathrm{avg}}$ — average length of resolved placeholder values
-- $O$ — total output length
-
-Display formulas (LaTeX):
-
-$$
-O = s \cdot S_{\mathrm{avg}} + p \cdot L_{\mathrm{avg}}
-$$
-
-$$
-\mathrm{Time_{parse}} = O(T)
-$$
-
-$$
-\mathrm{Time_{render}} = O(p + O)
-$$
-
-$$
-\mathrm{Space_{aux}} = O(s + p) \quad\text{(plus final output } O(O)\text{)}
-$$
-
-Rendered (portable) images — visible on GitHub:
-
-![Output length formula](assets/formulas/output_length.svg)
-
-![Complexities: parse & render](assets/formulas/complexities.svg)
-
 Fallback (plain text):
 
 - Output length: O = s _ S_avg + p _ L_avg
@@ -200,15 +179,15 @@ Fallback (plain text):
 
 ## Benchmarks
 
-| Benchmark                              | Time (avg) |
-| :------------------------------------- | ---------: |
-| `zip_templates::render`                |     360.13 |
-| `zip_templates::render_flat`           | **36.787** |
-| `zip_templates::render_from_vec_smart` | **21.823** |
-| `tera::render`                         |     1090.5 |
-| `mystical_runic::render`               |     747.51 |
-| `simple_replace`                       |     503.04 |
-| `simple_replace_flat`                  |     181.57 |
+| Benchmark                              | Time ns (avg) |
+| :------------------------------------- | ------------: |
+| `zip_templates::render`                |        360.13 |
+| `zip_templates::render_flat`           |    **36.787** |
+| `zip_templates::render_from_vec_smart` |    **21.823** |
+| `tera::render`                         |        1090.5 |
+| `mystical_runic::render`               |        747.51 |
+| `simple_replace`                       |        503.04 |
+| `simple_replace_flat`                  |        181.57 |
 
 ```
      Running benches/zip_templates_bench.rs (target/release/deps/zip_templates_bench-4b3e190c814a6892)
