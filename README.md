@@ -179,15 +179,17 @@ Fallback (plain text):
 
 ## Benchmarks
 
-| Benchmark                              | Time ns (avg) |
-| :------------------------------------- | ------------: |
-| `zip_templates::render`                |        360.13 |
-| `zip_templates::render_flat`           |    **36.787** |
-| `zip_templates::render_from_vec_smart` |    **21.823** |
-| `tera::render`                         |        1090.5 |
-| `mystical_runic::render`               |        747.51 |
-| `simple_replace`                       |        503.04 |
-| `simple_replace_flat`                  |        181.57 |
+For small strings on `Ryzen 8700GE`
+
+| Benchmark                                 | Time ns (avg) |
+| :---------------------------------------- | ------------: |
+| flatten json then `zip_templates::render` |        360.13 |
+| already flat json `zip_templates::render` |    **36.787** |
+| `zip_templates::render_from_vec_smart`    |    **21.823** |
+| `tera::render`                            |        1090.5 |
+| `mystical_runic::render`                  |        747.51 |
+| `simple_replace`                          |        503.04 |
+| `simple_replace_flat`                     |        181.57 |
 
 ```
      Running benches/zip_templates_bench.rs (target/release/deps/zip_templates_bench-4b3e190c814a6892)
