@@ -45,10 +45,6 @@ jobs:
         run: cargo test --verbose
         working-directory: rust
 
-      - name: Benchmark (cargo bench)
-        run: cargo bench --verbose
-        working-directory: rust
-
   publish:
     name: Publish to crates.io
     runs-on: ubuntu-latest
