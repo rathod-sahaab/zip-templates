@@ -19,7 +19,7 @@ fn prepare_data() -> (String, serde_json::Value) {
 
 fn bench_zip_templates_flat(c: &mut Criterion) {
     let (template, data) = prepare_data();
-    let parsed = ZipTemplate::from(&template);
+    let parsed = ZipTemplate::parse(&template);
 
     let flat = zip_templates::flatten_json(&data);
     // Simulate already flattened data (clone for realism)
@@ -34,7 +34,7 @@ fn bench_zip_templates_flat(c: &mut Criterion) {
 
 fn bench_zip_templates(c: &mut Criterion) {
     let (template, data) = prepare_data();
-    let parsed = ZipTemplate::from(&template);
+    let parsed = ZipTemplate::parse(&template);
 
     c.bench_function("zip_templates::render", |b| {
         b.iter(|| {
@@ -47,7 +47,7 @@ fn bench_zip_templates(c: &mut Criterion) {
 
 fn bench_zip_templates_from_vec(c: &mut Criterion) {
     let (template, _) = prepare_data();
-    let parsed = ZipTemplate::from(&template);
+    let parsed = ZipTemplate::parse(&template);
 
     let dynamics = vec!["Sam".to_string(), "12.34".to_string(), "5".to_string()];
     c.bench_function("zip_templates::render_from_vec_smart", |b| {
@@ -78,7 +78,7 @@ fn bench_simple_replace_flat(c: &mut Criterion) {
     let (template, data) = prepare_data();
 
     /* using zip_templates parse to get list of tokens, not counted in bench */
-    let parsed = ZipTemplate::from(&template);
+    let parsed = ZipTemplate::parse(&template);
 
     let flat = zip_templates::flatten_json(&data);
 
@@ -103,7 +103,7 @@ fn bench_simple_replace_flat(c: &mut Criterion) {
 
 fn bench_simple_replace(c: &mut Criterion) {
     let (template, data) = prepare_data();
-    let parsed = ZipTemplate::from(&template);
+    let parsed = ZipTemplate::parse(&template);
 
     // prepare map of keys to lookup strings
     let keys: Vec<String> = parsed.placeholders.clone();
