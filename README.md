@@ -1,5 +1,7 @@
 # ZipTemplates
 
+<div align="left">
+  <img src="./docs/images/logos/logo-plain.svg" width="300" align="right" style="margin: 0 0 20px 20px;"/>
 ZipTemplates is a tiny, fast templating approach for rendering runtime-specified template strings.
 
 The core idea is simple:
@@ -8,6 +10,7 @@ The core idea is simple:
 - When rendering, map placeholders to their substituted values, "zip" the placeholders with the statics array, and join the interleaved pieces to produce the final string.
 
 This yields a predictable, low-allocation rendering approach suitable for high-throughput or runtime-driven templating scenarios.
+</div>
 
 ## Why ZipTemplates
 
